@@ -1,6 +1,6 @@
 "use client"
 
-import { Calendar, Home, Inbox, Search, Settings } from "lucide-react"
+import { ShoppingCart, Home, Plane,Truck, ShoppingBasket, Layers, MapPinHouse } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
@@ -25,27 +25,32 @@ const items = [
   {
     title: "Branches",
     url: "/branches",
-    icon: Inbox,
+    icon: MapPinHouse,
   },
   {
     title: "Products",
     url: "/products",
-    icon: Calendar,
+    icon: ShoppingBasket,
   },
   {
     title: "Carts",
     url: "/carts",
-    icon: Search,
+    icon: ShoppingCart,
   },
   {
     title: "Distributor",
     url: "/distributor",
-    icon: Settings,
+    icon: Truck,
   },
   {
     title: "Amount",
     url: "/amount",
-    icon: Settings,
+    icon: Layers,
+  },
+  {
+    title: "Flight",
+    url: "/flight",
+    icon: Plane,
   },
 ]
 
