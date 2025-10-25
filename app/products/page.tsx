@@ -1,120 +1,337 @@
-"use client"
+"use client";
+
+import { useState } from "react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Doc, Id } from "@/convex/_generated/dataModel";
+import { toast } from "sonner";
+import { MoreHorizontal, PlusCircle } from "lucide-react";
+
+// --- Importaciones de Componentes Shadcn/ui ---
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-const orders = [
-  {
-    id: "ORD001",
-    customer: "John Doe",
-    product: "MacBook Pro",
-    status: "shipped",
-    date: "2024-01-15",
-    amount: "$2,499.00",
-  },
-  {
-    id: "ORD002", 
-    customer: "Sarah Wilson",
-    product: "iPhone 15",
-    status: "processing",
-    date: "2024-01-16",
-    amount: "$999.00",
-  },
-  {
-    id: "ORD003",
-    customer: "Mike Johnson", 
-    product: "AirPods Pro",
-    status: "delivered",
-    date: "2024-01-14",
-    amount: "$249.00",
-  },
-  {
-    id: "ORD004",
-    customer: "Emma Brown",
-    product: "iPad Air",
-    status: "pending",
-    date: "2024-01-17",
-    amount: "$599.00",
-  },
-  {
-    id: "ORD005",
-    customer: "David Lee",
-    product: "Apple Watch",
-    status: "shipped",
-    date: "2024-01-13",
-    amount: "$399.00",
-  },
-]
+} from "@/components/ui/table";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
-export default function TableResponsive() {
+type ProductoType = Doc<"Producto">;
+
+type ProductoFormState = {
+  nombre: string;
+  distribuidor: string;
+};
+
+const initialState: ProductoFormState = {
+  nombre: "",
+  distribuidor: "",
+};
+
+export default function ProductosPage() {
+  const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedProducto, setSelectedProducto] = useState<ProductoType | null>(null);
+  const [formData, setFormData] = useState<ProductoFormState>(initialState);
+
+  const productos = useQuery(api.Producto.getProductos);
+  const createProducto = useMutation(api.Producto.createProducto);
+  const updateProducto = useMutation(api.Producto.updateProducto);
+  const deleteProducto = useMutation(api.Producto.deleteProducto);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setFormData((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    toast.promise(
+      createProducto({
+        nombre: formData.nombre,
+        distribuidor: formData.distribuidor as Id<"Distribuidor">,
+        fecha_registro: Date.now(),
+      }),
+      {
+        loading: "Creando producto...",
+        success: "¡Producto creado con éxito!",
+        error: (err) => `Error: ${err.data}`,
+      }
+    );
+    setFormData(initialState);
+    setCreateDialogOpen(false);
+  };
+
+  const handleEdit = (producto: ProductoType) => {
+    setSelectedProducto(producto);
+    setFormData({
+      nombre: producto.nombre,
+      distribuidor: producto.distribuidor,
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedProducto) return;
+
+    toast.promise(
+      updateProducto({
+        id: selectedProducto._id,
+        nombre: formData.nombre,
+        distribuidor: formData.distribuidor as Id<"Distribuidor">,
+      }),
+      {
+        loading: "Actualizando producto...",
+        success: "¡Producto actualizado con éxito!",
+        error: (err) => `Error: ${err.data}`,
+      }
+    );
+    setEditDialogOpen(false);
+    setSelectedProducto(null);
+  };
+
+  const confirmDelete = (producto: ProductoType) => {
+    setSelectedProducto(producto);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!selectedProducto) return;
+    toast.promise(deleteProducto({ id: selectedProducto._id }), {
+      loading: "Eliminando producto...",
+      success: `Producto "${selectedProducto.nombre}" eliminado.`,
+      error: (err) => `Error: ${err.data}`,
+    });
+    setDeleteDialogOpen(false);
+    setSelectedProducto(null);
+  };
+
+  if (productos === undefined) {
+    return <div className="p-4 sm:p-6">Cargando productos...</div>;
+  }
+
   return (
-    <div className="w-full max-w-4xl mx-auto p-6">
-      {/* Desktop Table */}
-      <div className="hidden md:block">
-        <Table>
-          <TableCaption>Recent orders from your store.</TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[100px]">Order</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Product</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead className="text-right">Amount</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {orders.map((order) => (
-              <TableRow key={order.id}>
-                <TableCell className="font-medium">{order.id}</TableCell>
-                <TableCell>{order.customer}</TableCell>
-                <TableCell>{order.product}</TableCell>
-                <TableCell>
-                
-                </TableCell>
-                <TableCell>{order.date}</TableCell>
-                <TableCell className="text-right">{order.amount}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-      {/* Mobile Cards */}
-      <div className="md:hidden space-y-4">
-        {orders.map((order) => (
-          <Card key={order.id}>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center justify-between text-base">
-                <span>{order.id}</span>
-                
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Customer</span>
-                <span className="text-sm font-medium">{order.customer}</span>
+    <div className="p-4 sm:p-6">
+      <Card>
+        <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <CardTitle>Administración de Productos</CardTitle>
+            <CardDescription>
+              Crea, edita y elimina los productos de tu inventario.
+            </CardDescription>
+          </div>
+          <Button onClick={() => setCreateDialogOpen(true)} className="w-full md:w-auto">
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Crear Producto
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nombre</TableHead>
+                  <TableHead>Distribuidor ID</TableHead>
+                  <TableHead>Fecha Registro</TableHead>
+                  <TableHead>
+                    <span className="sr-only">Acciones</span>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {productos.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="h-24 text-center">
+                      Aún no hay productos. ¡Crea el primero!
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  productos.map((producto) => (
+                    <TableRow key={producto._id}>
+                      <TableCell className="font-medium">{producto.nombre}</TableCell>
+                      <TableCell>{producto.distribuidor}</TableCell>
+                      <TableCell>
+                        {new Date(producto.fecha_registro).toLocaleDateString('es-MX', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Toggle menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => handleEdit(producto)}>
+                              Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => confirmDelete(producto)}>
+                              Eliminar
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* --- Dialogo para CREAR Producto --- */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <form onSubmit={handleCreate}>
+            <DialogHeader>
+              <DialogTitle>Crear Nuevo Producto</DialogTitle>
+              <DialogDescription>
+                Completa los datos para registrar un nuevo producto.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="nombre" className="text-left">
+                  Nombre
+                </Label>
+                <Input
+                  id="nombre"
+                  value={formData.nombre}
+                  onChange={handleInputChange}
+                  required
+                />
               </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Product</span>
-                <span className="text-sm font-medium">{order.product}</span>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="distribuidor" className="text-left">
+                  Distribuidor ID
+                </Label>
+                <Input
+                  id="distribuidor"
+                  value={formData.distribuidor}
+                  onChange={handleInputChange}
+                  placeholder="ID del distribuidor"
+                  required
+                />
               </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Date</span>
-                <span className="text-sm font-medium">{order.date}</span>
+            </div>
+            <DialogFooter className="flex-col-reverse sm:flex-row">
+              <DialogClose asChild>
+                <Button type="button" variant="secondary">Cancelar</Button>
+              </DialogClose>
+              <Button type="submit">Crear Producto</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* --- Dialogo para EDITAR Producto --- */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <form onSubmit={handleUpdate}>
+            <DialogHeader>
+              <DialogTitle>Editar Producto</DialogTitle>
+              <DialogDescription>
+                Actualiza los datos del producto seleccionado.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="nombre" className="text-left">
+                  Nombre
+                </Label>
+                <Input
+                  id="nombre"
+                  value={formData.nombre}
+                  onChange={handleInputChange}
+                  required
+                />
               </div>
-              <div className="flex justify-between pt-1 border-t">
-                <span className="text-sm text-muted-foreground">Amount</span>
-                <span className="text-sm font-semibold">{order.amount}</span>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="distribuidor" className="text-left">
+                  Distribuidor ID
+                </Label>
+                <Input
+                  id="distribuidor"
+                  value={formData.distribuidor}
+                  onChange={handleInputChange}
+                  placeholder="ID del distribuidor"
+                  required
+                />
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            </div>
+            <DialogFooter className="flex-col-reverse sm:flex-row">
+              <DialogClose asChild>
+                <Button type="button" variant="secondary">Cancelar</Button>
+              </DialogClose>
+              <Button type="submit">Guardar Cambios</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* --- Dialogo de CONFIRMACIÓN para Eliminar --- */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás realmente seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Esto eliminará permanentemente el producto
+              <span className="font-semibold"> {selectedProducto?.nombre}</span> de la base de datos.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col-reverse sm:flex-row">
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>
+              Sí, eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
-    )};
+  );
+}
