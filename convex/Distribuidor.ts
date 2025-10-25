@@ -4,27 +4,27 @@ import { mutation, query } from "./_generated/server";
 // --- Crear Distribuidor ---
 export const createDistribuidor = mutation({
   args: {
-    fecha_registro: v.number(),
     nombre: v.string(),
     correo: v.optional(v.string()),
     telefono: v.optional(v.string()),
     direccion: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const distribuidorId = await ctx.db.insert("Distribuidor", args);
+    const distribuidorId = await ctx.db.insert("Distribuidor", {
+      ...args,
+      fecha_registro: Date.now(),
+    });
     return distribuidorId;
   },
 });
 
 // --- Leer Distribuidores ---
-// Obtener todos los distribuidores
 export const getDistribuidores = query({
   handler: async (ctx) => {
     return await ctx.db.query("Distribuidor").collect();
   },
 });
 
-// Obtener un distribuidor por su ID
 export const getDistribuidorById = query({
   args: { distribuidorId: v.id("Distribuidor") },
   handler: async (ctx, args) => {
@@ -40,7 +40,6 @@ export const updateDistribuidor = mutation({
     correo: v.optional(v.string()),
     telefono: v.optional(v.string()),
     direccion: v.optional(v.string()),
-    fecha_registro: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const { id, ...rest } = args;
