@@ -1,0 +1,139 @@
+/* ========================================
+   ESTILOS DEL SIDEBAR
+   ======================================== */
+
+/* Variables de color del sidebar - Tema Claro */
+:root {
+  /* Fondo principal del sidebar - Morado oscuro */
+  --sidebar: oklch(0.2985 0.0761 273.78);
+  
+  /* Texto principal del sidebar - Casi blanco */
+  --sidebar-foreground: oklch(0.985 0 0);
+  
+  /* Color primario para elementos destacados - Gris muy oscuro */
+  --sidebar-primary: oklch(0.205 0 0);
+  
+  /* Texto sobre elementos primarios - Casi blanco */
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  
+  /* Fondo de hover/elementos activos - Morado claro */
+  --sidebar-accent: oklch(51.563% 0.05933 275.847);
+  
+  /* Texto sobre elementos accent - Casi blanco */
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  
+  /* Color de bordes - Gris claro */
+  --sidebar-border: oklch(0.922 0 0);
+  
+  /* Color del anillo de focus - Gris medio */
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+/* Variables de color del sidebar - Tema Oscuro */
+.dark {
+  /* Fondo principal del sidebar - Negro/Gris muy oscuro */
+  --sidebar: oklch(0.205 0 0);
+  
+  /* Texto principal - Casi blanco */
+  --sidebar-foreground: oklch(0.985 0 0);
+  
+  /* Color primario - Azul/Morado */
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  
+  /* Texto sobre primario - Casi blanco */
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  
+  /* Fondo de hover - Gris oscuro */
+  --sidebar-accent: oklch(0.269 0 0);
+  
+  /* Texto sobre accent - Casi blanco */
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  
+  /* Bordes - Blanco con 10% opacidad */
+  --sidebar-border: oklch(1 0 0 / 10%);
+  
+  /* Anillo de focus - Gris medio */
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+/* ========================================
+   ANIMACIONES DE HOVER
+   ======================================== */
+
+/* Animación de escala suave en hover */
+.sidebar-item-hover {
+  @apply transition-all duration-200 ease-out;
+}
+
+.sidebar-item-hover:hover {
+  @apply scale-105;
+}
+
+.sidebar-item-hover:active {
+  @apply scale-95;
+}
+
+/* Animación más sutil para items del sidebar */
+.sidebar-scale-subtle {
+  @apply transition-transform duration-200 ease-in-out;
+}
+
+.sidebar-scale-subtle:hover {
+  @apply scale-[1.02];
+}
+
+.sidebar-scale-subtle:active {
+  @apply scale-[0.98];
+}
+
+/* Animación con sombra */
+.sidebar-hover-shadow {
+  @apply transition-all duration-300 ease-out;
+}
+
+.sidebar-hover-shadow:hover {
+  @apply scale-105 shadow-lg;
+}
+
+/* Animación de slide hacia arriba */
+.sidebar-hover-lift {
+  @apply transition-all duration-200;
+}
+
+.sidebar-hover-lift:hover {
+  @apply -translate-y-1 shadow-md;
+}
+
+/* ========================================
+   EJEMPLOS DE USO EN TAILWIND
+   ======================================== */
+
+/*
+  Aplicar en componentes:
+  
+  <div className="bg-sidebar text-sidebar-foreground">
+    Fondo del sidebar
+  </div>
+  
+  <button className="bg-sidebar-primary text-sidebar-primary-foreground sidebar-scale-subtle">
+    Botón primario con animación
+  </button>
+  
+  <div className="bg-sidebar-accent text-sidebar-accent-foreground sidebar-hover-lift">
+    Item con hover lift
+  </div>
+*/
+
+/* ========================================
+   CONVERTIDOR HEX A OKLCH
+   ======================================== */
+
+/*
+  Usa https://oklch.com/ para convertir colores HEX a OKLCH
+  
+  Ejemplos:
+  - #3b82f6 (azul) → oklch(0.62 0.23 255)
+  - #10b981 (verde) → oklch(0.71 0.16 165)
+  - #ef4444 (rojo) → oklch(0.63 0.25 25)
+  - #8b5cf6 (morado) → oklch(0.58 0.24 285)
+*/
