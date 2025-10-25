@@ -55,14 +55,18 @@ export default defineSchema({
         sucursal_id: v.id("Sucursal"),
         fecha_registro: v.number(),
     })
-    .index("by_producto_sucursal_caducidad", ["producto_id", "sucursal_id", "fecha_caducidad"]),
+    .index("by_producto_sucursal_caducidad", [
+        "producto_id",
+        "sucursal_id",
+        "fecha_caducidad",
+    ]),
 
     Vuelo: defineTable({
         carrito_id: v.id("Carrito"),
         cantidad: v.array(
             v.object({
                 cantidad: v.number(),
-                producto: v.id("Producto"),
+                producto: v.id("Cantidad"),
                 sobrante: v.optional(v.number()),
             })
         ),
