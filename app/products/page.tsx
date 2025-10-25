@@ -52,6 +52,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type ProductoType = Doc<"Producto">;
 
@@ -73,6 +80,7 @@ export default function ProductosPage() {
   const [formData, setFormData] = useState<ProductoFormState>(initialState);
 
   const productos = useQuery(api.Producto.getProductos);
+  const distribuidores = useQuery(api.Distribuidor.getDistribuidores);
   const createProducto = useMutation(api.Producto.createProducto);
   const updateProducto = useMutation(api.Producto.updateProducto);
   const deleteProducto = useMutation(api.Producto.deleteProducto);
@@ -80,6 +88,10 @@ export default function ProductosPage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleSelectChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, distribuidor: value }));
   };
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -248,15 +260,24 @@ export default function ProductosPage() {
               </div>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="distribuidor" className="text-left">
-                  Distribuidor ID
+                  Distribuidor
                 </Label>
-                <Input
-                  id="distribuidor"
+                <Select
                   value={formData.distribuidor}
-                  onChange={handleInputChange}
-                  placeholder="ID del distribuidor"
+                  onValueChange={handleSelectChange}
                   required
-                />
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Selecciona un distribuidor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {distribuidores?.map((dist) => (
+                      <SelectItem key={dist._id} value={dist._id}>
+                        {dist.nombre}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <DialogFooter className="flex-col-reverse sm:flex-row">
@@ -293,15 +314,24 @@ export default function ProductosPage() {
               </div>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="distribuidor" className="text-left">
-                  Distribuidor ID
+                  Distribuidor
                 </Label>
-                <Input
-                  id="distribuidor"
+                <Select
                   value={formData.distribuidor}
-                  onChange={handleInputChange}
-                  placeholder="ID del distribuidor"
+                  onValueChange={handleSelectChange}
                   required
-                />
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Selecciona un distribuidor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {distribuidores?.map((dist) => (
+                      <SelectItem key={dist._id} value={dist._id}>
+                        {dist.nombre}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <DialogFooter className="flex-col-reverse sm:flex-row">
