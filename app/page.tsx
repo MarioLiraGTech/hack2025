@@ -1,65 +1,213 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import React, { useEffect, useState } from 'react';
+// XLSX not required in the client page because server reads the file
+import {  Chart as ChartJS, CategoryScale,LinearScale,BarElement,  ArcElement,PointElement,LineElement,Title,Tooltip,Legend,ChartData,} from 'chart.js';
+import { Bar, Doughnut, Line } from 'react-chartjs-2';
+
+// 1. Registrar los componentes de Chart.js que usaremos
+ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, PointElement, LineElement, Title, Tooltip, Legend);
+
+// 2. Definir el tipo de datos para nuestras filas de Excel
+interface FlightData {
+  Product_Name: string;
+  Quantity_Consumed: number;
+  Flight_Type: 'short-haul' | 'medium-haul' | 'long-haul';
+  // Puedes añadir más campos si los necesitas, pero estos son los mínimos
+  // para la solicitud.
+}
+
+// Opciones para los gráficos
+const chartOptions = {
+  responsive: true,
+  plugins: {
+    legend: {
+      position: 'top' as const,
+    },
+  },
+};
+
+// Función auxiliar para obtener el valor de una variable CSS
+const getCSSVariable = (variable: string): string => {
+  if (typeof window === 'undefined') return '';
+  const value = getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
+  return value;
+};
+
+/**
+ * Componente principal del Dashboard
+ */
+export default function DashboardPage() {
+  // 3. Estados para los datos y visualizaciones
+  const [data, setData] = useState<FlightData[]>([]);
+  const [top5ReturnedPercentageChart, setTop5ReturnedPercentageChart] = useState<ChartData<'line'> | null>(null);
+  const [topProductsData, setTopProductsData] = useState<ChartData<'bar'> | null>(null);
+  const [flightTypeData, setFlightTypeData] = useState<ChartData<'doughnut'> | null>(null);
+
+  // Estados de UI
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch automático al montar: consumimos el Excel desde el servidor
+  useEffect(() => {
+    const load = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const res = await fetch('/api/excel');
+        if (!res.ok) throw new Error('Error fetching data');
+        const json = await res.json();
+
+        if (json.error) throw new Error(json.error);
+
+        type ApiRow = Record<string, unknown> & { _raw?: Record<string, unknown> };
+        const rows: FlightData[] = (json.rows ?? []).map((r: ApiRow) => {
+          const raw = r._raw ?? {};
+          const product = (r['Product_Name'] ?? raw['Product_Name'] ?? raw['Product'] ?? '') as unknown;
+          const qty = (r['Quantity_Consumed'] ?? r['Quantity'] ?? raw['Quantity_Consumed'] ?? 0) as unknown;
+          const ft = (r['Flight_Type'] ?? raw['Flight_Type'] ?? 'unknown') as unknown;
+          return {
+            Product_Name: String(product ?? ''),
+            Quantity_Consumed: Number(qty ?? 0) || 0,
+            Flight_Type: String(ft ?? 'unknown'),
+          };
+        });
+
+        setData(rows);
+        
+        // Top 5 productos con mayor porcentaje de regresados
+        const topReturnedPercentage: [string, number][] = json.topReturnedPercentage ?? [];
+        const chart4Color = getCSSVariable('--chart-4');
+        setTop5ReturnedPercentageChart({
+          labels: topReturnedPercentage.map(([name]) => name),
+          datasets: [
+            {
+              label: '% de Productos Regresados',
+              data: topReturnedPercentage.map(([, percentage]) => percentage),
+              backgroundColor: chart4Color,
+              borderColor: chart4Color,
+              borderWidth: 2,
+              pointRadius: 6,
+              pointHoverRadius: 8,
+              pointBackgroundColor: chart4Color,
+              tension: 0.3,
+            },
+          ],
+        });
+
+        // Top 10 products (barra)
+        const allProducts: [string, number][] = json.topProducts ?? [];
+        const topProducts = allProducts.slice(0, 10);
+        const chart1Color = getCSSVariable('--chart-1');
+        setTopProductsData({
+          labels: topProducts.map(([name]) => name),
+          datasets: [
+            {
+              label: 'Cantidad Consumida',
+              data: topProducts.map(([, qty]) => qty),
+              backgroundColor: chart1Color,
+              borderColor: chart1Color,
+              borderWidth: 1,
+            },
+          ],
+        });
+
+        // Flight types
+        const flightTypes: [string, number][] = json.flightTypes ?? [];
+        const chart2Color = getCSSVariable('--chart-2');
+        const chart3Color = getCSSVariable('--chart-3');
+        const chart5Color = getCSSVariable('--chart-5');
+        setFlightTypeData({
+          labels: flightTypes.map(([name]) => name),
+          datasets: [
+            {
+              label: 'Consumo por Tipo de Vuelo',
+              data: flightTypes.map(([, qty]) => qty),
+              backgroundColor: [
+                chart2Color,
+                chart3Color,
+                chart5Color,
+              ],
+              borderColor: [
+                chart2Color,
+                chart3Color,
+                chart5Color,
+              ],
+              borderWidth: 1,
+            },
+          ],
+        });
+      } catch (err: unknown) {
+        console.error('Error cargando datos del servidor:', err);
+        const message = err instanceof Error ? err.message : String(err);
+        setError(message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    load();
+  }, []);
+
+  // 5. Renderizado del componente
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+    <div style={{ padding: '2rem', fontFamily: 'Arial, sans-serif' }}>
+
+      {/* --- Mensajes de Estado --- */}
+      {isLoading && <p>Cargando y procesando archivo local...</p>}
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+
+      {/* --- Contenedor del Dashboard (solo se muestra si hay datos) --- */}
+      {top5ReturnedPercentageChart !== null && !isLoading && (
+        <main>
+          {/* Sección de KPI: Top 5 Productos con Mayor % de Regresados */}
+          <h2>Top 5 Productos con Mayor Porcentaje de Regresados</h2>
+          <div style={chartContainerStyle}>
+            <Line options={chartOptions} data={top5ReturnedPercentageChart} />
+          </div>
+
+          <hr style={{ margin: '2rem 0' }} />
+
+          {/* Sección de Gráficos */}
+          <h2>Visualizaciones</h2>
+          <div style={dashboardGridStyle}>
+            {/* Gráfico 1 */}
+            {topProductsData && (
+              <div style={chartContainerStyle}>
+                <h3>Top 10 Productos Más Consumidos</h3>
+                <Bar options={chartOptions} data={topProductsData} />
+              </div>
+            )}
+
+            {/* Gráfico 2 */}
+            {flightTypeData && (
+              <div style={chartContainerStyle}>
+                <h3>Distribución por Tipo de Vuelo</h3>
+                <Doughnut options={chartOptions} data={flightTypeData} />
+              </div>
+            )}
+
+           
+          </div>
+        </main>
+      )}
     </div>
   );
 }
+
+// 6. Estilos básicos para el layout
+const dashboardGridStyle: React.CSSProperties = {
+  display: 'grid',
+  // Mostrar exactamente 2 columnas en una fila; cada columna toma la mitad del contenedor
+  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+  gap: '2rem',
+  marginTop: '1rem',
+};
+
+const chartContainerStyle: React.CSSProperties = {
+  border: '1px solid #ddd',
+  borderRadius: '8px',
+  padding: '1rem',
+  backgroundColor: '#fff',
+  boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+};

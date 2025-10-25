@@ -73,7 +73,6 @@ def predict_list(vuelo_input: VueloInput):
 
     return {"predictions": dict(predicciones_ordenadas)}
 
-# --- (Opcional) Endpoint de bienvenida ---
 @app.get("/")
 def read_root():
     return {"message": "API de Predicción de Consumo"}
