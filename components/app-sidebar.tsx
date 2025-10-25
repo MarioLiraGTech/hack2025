@@ -62,12 +62,12 @@ export function AppSidebar() {
   
   return (
     <Sidebar className="sidebar-animate-in">
-      {/* PASO 1: Haz que el contenido sea un flex container vertical que ocupe toda la altura */}
       <SidebarContent className="flex flex-col h-full">
-        {/* PASO 2: Envuelve tu menú en un div que crezca para ocupar el espacio */}
         <div className="flex-1">
           <SidebarGroup>
-            <SidebarGroupLabel className="sidebar-group-label">Application</SidebarGroupLabel>
+            <SidebarGroupLabel className="sidebar-group-label">
+              Inset logo
+            </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {items.map((item) => {

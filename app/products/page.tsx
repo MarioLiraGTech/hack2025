@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Doc, Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
-import { MoreHorizontal, PlusCircle } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Search } from "lucide-react";
 
 // --- Importaciones de Componentes Shadcn/ui ---
 import {
@@ -20,6 +20,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -72,6 +73,8 @@ const initialState: ProductoFormState = {
   distribuidor: "",
 };
 
+const ITEMS_PER_PAGE = 5;
+
 export default function ProductosPage() {
   const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
@@ -79,11 +82,42 @@ export default function ProductosPage() {
   const [selectedProducto, setSelectedProducto] = useState<ProductoType | null>(null);
   const [formData, setFormData] = useState<ProductoFormState>(initialState);
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+
   const productos = useQuery(api.Producto.getProductos);
   const distribuidores = useQuery(api.Distribuidor.getDistribuidores);
   const createProducto = useMutation(api.Producto.createProducto);
   const updateProducto = useMutation(api.Producto.updateProducto);
   const deleteProducto = useMutation(api.Producto.deleteProducto);
+
+  const distributorMap = useMemo(() => {
+    if (!distribuidores) return new Map();
+    return new Map(distribuidores.map(d => [d._id, d.nombre]));
+  }, [distribuidores]);
+
+  const filteredProductos = useMemo(() => {
+    if (!productos) return [];
+    if (!searchTerm) return productos;
+
+    const lowercasedFilter = searchTerm.toLowerCase();
+    return productos.filter(p => {
+      const distributorName = distributorMap.get(p.distribuidor)?.toLowerCase() || '';
+      return p.nombre.toLowerCase().includes(lowercasedFilter) ||
+             distributorName.includes(lowercasedFilter);
+    });
+  }, [productos, searchTerm, distributorMap]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  const paginatedProductos = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredProductos.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredProductos, currentPage]);
+
+  const totalPages = Math.ceil(filteredProductos.length / ITEMS_PER_PAGE);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -157,24 +191,36 @@ export default function ProductosPage() {
     setSelectedProducto(null);
   };
 
-  if (productos === undefined) {
-    return <div className="p-4 sm:p-6">Cargando productos...</div>;
+  if (productos === undefined || distribuidores === undefined) {
+    return <div className="p-4 sm:p-6">Cargando datos...</div>;
   }
 
   return (
     <div className="p-4 sm:p-6">
       <Card>
-        <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <CardHeader className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
           <div>
             <CardTitle>Administración de Productos</CardTitle>
             <CardDescription>
               Crea, edita y elimina los productos de tu inventario.
             </CardDescription>
           </div>
-          <Button onClick={() => setCreateDialogOpen(true)} className="w-full md:w-auto">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Crear Producto
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Buscar por producto o distribuidor..."
+                className="pl-8 w-full"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <Button onClick={() => setCreateDialogOpen(true)} className="w-full sm:w-auto">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Crear Producto
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -182,7 +228,7 @@ export default function ProductosPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Nombre</TableHead>
-                  <TableHead>Distribuidor ID</TableHead>
+                  <TableHead>Distribuidor</TableHead>
                   <TableHead>Fecha Registro</TableHead>
                   <TableHead>
                     <span className="sr-only">Acciones</span>
@@ -190,17 +236,17 @@ export default function ProductosPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {productos.length === 0 ? (
+                {paginatedProductos.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={4} className="h-24 text-center">
-                      Aún no hay productos. ¡Crea el primero!
+                      {searchTerm ? "No se encontraron resultados." : "Aún no hay productos. ¡Crea el primero!"}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  productos.map((producto) => (
+                  paginatedProductos.map((producto) => (
                     <TableRow key={producto._id}>
                       <TableCell className="font-medium">{producto.nombre}</TableCell>
-                      <TableCell>{producto.distribuidor}</TableCell>
+                      <TableCell>{distributorMap.get(producto.distribuidor) || 'Desconocido'}</TableCell>
                       <TableCell>
                         {new Date(producto.fecha_registro).toLocaleDateString('es-MX', {
                           year: 'numeric',
@@ -234,6 +280,32 @@ export default function ProductosPage() {
             </Table>
           </div>
         </CardContent>
+
+        {totalPages > 1 && (
+          <CardFooter className="flex items-center justify-between border-t pt-4">
+            <div className="text-sm text-muted-foreground">
+              Mostrando página <strong>{currentPage}</strong> de <strong>{totalPages}</strong>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                variant="outline"
+                size="sm"
+              >
+                Anterior
+              </Button>
+              <Button
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                variant="outline"
+                size="sm"
+              >
+                Siguiente
+              </Button>
+            </div>
+          </CardFooter>
+        )}
       </Card>
 
       {/* --- Dialogo para CREAR Producto --- */}
@@ -355,7 +427,7 @@ export default function ProductosPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-col-reverse sm:flex-row">
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setDeleteDialogOpen(false)}>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete}>
               Sí, eliminar
             </AlertDialogAction>
