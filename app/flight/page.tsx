@@ -166,49 +166,53 @@ export default function VuelosPage() {
         </CardContent>
       </Card>
 
-      {/* --- Dialogo para CREAR Vuelo (Iniciar Traslado) --- */}
+     {/* --- Dialogo para CREAR Vuelo (Iniciar Traslado) --- */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="sm:max-w-4xl">
-          <DialogHeader><DialogTitle>Iniciar Nuevo Traslado</DialogTitle><DialogDescription>Prepara el inventario a enviar. Puedes usar la predicción como guía.</DialogDescription></DialogHeader>
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 py-4">
-            {/* Columna Izquierda: Formulario de Traslado */}
-            <form onSubmit={handleCreateVuelo} className="lg:col-span-3 space-y-4">
-              <div>
-                <Label>Sucursal de Origen</Label>
-                <Combobox options={sucursales.map(s => ({ value: s._id, label: s.nombre }))} value={createForm.sucursal_origen} onChange={val => setCreateForm(p => ({ ...p, sucursal_origen: val }))} placeholder="Selecciona origen" searchPlaceholder="Buscar sucursal..." />
-              </div>
-              <div>
-                <Label>Sucursal de Destino</Label>
-                <Combobox options={sucursales.map(s => ({ value: s._id, label: s.nombre }))} value={createForm.sucursal_destino} onChange={val => setCreateForm(p => ({ ...p, sucursal_destino: val }))} placeholder="Selecciona destino" searchPlaceholder="Buscar sucursal..." />
-              </div>
-              <div>
-                <Label>Carrito Asignado</Label>
-                <Combobox options={carritos.map(c => ({ value: c._id, label: c.nombre }))} value={createForm.carrito_id} onChange={val => setCreateForm(p => ({ ...p, carrito_id: val }))} placeholder="Selecciona un carrito" searchPlaceholder="Buscar carrito..." />
-              </div>
-              <div className="border-t pt-4">
-                <h4 className="font-semibold mb-2">Productos a Enviar</h4>
-                {createForm.sucursal_origen ? (
-                  <div className="flex items-end gap-2">
-                    <div className="flex-1"><Label>Producto en Inventario</Label><Combobox options={inventarioEnOrigen} value={tempProduct.producto} onChange={val => setTempProduct(p => ({ ...p, producto: val }))} placeholder="Selecciona del stock" searchPlaceholder="Buscar producto..." /></div>
-                    <div className="w-24"><Label>Cantidad</Label><Input type="number" value={tempProduct.cantidad} onChange={e => setTempProduct(p => ({ ...p, cantidad: e.target.value }))} placeholder="0" /></div>
-                    <Button type="button" onClick={handleAddProductToVuelo}>Agregar</Button>
-                  </div>
-                ) : <p className="text-sm text-muted-foreground">Selecciona origen para ver inventario.</p>}
-              </div>
-              <div className="max-h-32 overflow-y-auto space-y-2 pr-2 border rounded-md p-2">
-                {createForm.cantidad.length === 0 ? <p className="text-xs text-center text-muted-foreground">Aún no has agregado productos.</p> : createForm.cantidad.map((item, index) => (
-                  <div key={index} className="flex items-center justify-between text-sm bg-muted p-2 rounded-md">
-                    <span>{getProductoNombreFromCantidadId(item.producto)} - <span className="font-bold">{item.cantidad}</span> uds.</span>
-                    <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveProductFromVuelo(index)}><Trash2 className="h-4 w-4" /></Button>
-                  </div>
-                ))}
-              </div>
-              <DialogFooter className="mt-4 !justify-between">
-                <DialogClose asChild><Button type="button" variant="secondary">Cancelar</Button></DialogClose>
-                <Button type="submit">Iniciar Traslado</Button>
-              </DialogFooter>
-            </form>
-
+        {/* ✅ CAMBIO 1: Limita la altura y aplica flexbox vertical */}
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Iniciar Nuevo Traslado</DialogTitle>
+            <DialogDescription>Prepara el inventario a enviar. Puedes usar la predicción como guía.</DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto p-1 pr-4">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 py-4">
+              <form onSubmit={handleCreateVuelo} className="lg:col-span-3 space-y-4">
+                <div>
+                  <Label>Sucursal de Origen</Label>
+                  <Combobox options={sucursales.map(s => ({ value: s._id, label: s.nombre }))} value={createForm.sucursal_origen} onChange={val => setCreateForm(p => ({ ...p, sucursal_origen: val }))} placeholder="Selecciona origen" searchPlaceholder="Buscar sucursal..." />
+                </div>
+                <div>
+                  <Label>Sucursal de Destino</Label>
+                  <Combobox options={sucursales.map(s => ({ value: s._id, label: s.nombre }))} value={createForm.sucursal_destino} onChange={val => setCreateForm(p => ({ ...p, sucursal_destino: val }))} placeholder="Selecciona destino" searchPlaceholder="Buscar sucursal..." />
+                </div>
+                <div>
+                  <Label>Carrito Asignado</Label>
+                  <Combobox options={carritos.map(c => ({ value: c._id, label: c.nombre }))} value={createForm.carrito_id} onChange={val => setCreateForm(p => ({ ...p, carrito_id: val }))} placeholder="Selecciona un carrito" searchPlaceholder="Buscar carrito..." />
+                </div>
+                <div className="border-t pt-4">
+                  <h4 className="font-semibold mb-2">Productos a Enviar</h4>
+                  {createForm.sucursal_origen ? (
+                    <div className="flex items-end gap-2">
+                      <div className="flex-1"><Label>Producto en Inventario</Label><Combobox options={inventarioEnOrigen} value={tempProduct.producto} onChange={val => setTempProduct(p => ({ ...p, producto: val }))} placeholder="Selecciona del stock" searchPlaceholder="Buscar producto..." /></div>
+                      <div className="w-24"><Label>Cantidad</Label><Input type="number" value={tempProduct.cantidad} onChange={e => setTempProduct(p => ({ ...p, cantidad: e.target.value }))} placeholder="0" /></div>
+                      <Button type="button" onClick={handleAddProductToVuelo}>Agregar</Button>
+                    </div>
+                  ) : <p className="text-sm text-muted-foreground">Selecciona origen para ver inventario.</p>}
+                </div>
+                <div className="max-h-32 overflow-y-auto space-y-2 pr-2 border rounded-md p-2">
+                  {createForm.cantidad.length === 0 ? <p className="text-xs text-center text-muted-foreground">Aún no has agregado productos.</p> : createForm.cantidad.map((item, index) => (
+                    <div key={index} className="flex items-center justify-between text-sm bg-muted p-2 rounded-md">
+                      <span>{getProductoNombreFromCantidadId(item.producto)} - <span className="font-bold">{item.cantidad}</span> uds.</span>
+                      <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveProductFromVuelo(index)}><Trash2 className="h-4 w-4" /></Button>
+                    </div>
+                  ))}
+                </div>
+                {/* ✅ CAMBIO 3: El DialogFooter se renderiza aquí, fuera del scroll, pero sigue funcionando para el form */}
+                <DialogFooter className="mt-4 !justify-between sticky bottom-0 bg-background pt-4">
+                  <DialogClose asChild><Button type="button" variant="secondary">Cancelar</Button></DialogClose>
+                  <Button type="submit">Iniciar Traslado</Button>
+                </DialogFooter>
+              </form>
             {/* Columna Derecha: Predicción */}
             <div className="lg:col-span-2 border-l lg:pl-6">
               {!showPrediction ? (
@@ -238,6 +242,7 @@ export default function VuelosPage() {
                 </form>
               )}
             </div>
+          </div>
           </div>
         </DialogContent>
       </Dialog>
