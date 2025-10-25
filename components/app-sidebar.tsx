@@ -41,7 +41,12 @@ const items = [
     title: "Distributor",
     url: "/distributor",
     icon: Settings,
-  }
+  },
+  {
+    title: "Amount",
+    url: "/amount",
+    icon: Settings,
+  },
 ]
 
 export function AppSidebar() {
