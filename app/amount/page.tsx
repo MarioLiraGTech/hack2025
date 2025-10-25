@@ -174,6 +174,15 @@ export default function CantidadesPage() {
   
   const formatDate = (timestamp: number) => new Date(timestamp).toLocaleDateString("es-MX");
 
+  // Función para verificar si la fecha de caducidad está próxima (menos de 10 días)
+  const isExpiringSoon = (timestamp: number) => {
+    const expiryDate = new Date(timestamp);
+    const today = new Date();
+    const diffTime = expiryDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays < 10;
+  };
+
   return (
     <div className="p-4 sm:p-6">
       <Card>
@@ -223,7 +232,12 @@ export default function CantidadesPage() {
                   </TableRow>
                 ) : (
                   filteredCantidades.map((item) => (
-                    <TableRow key={item._id}>
+                    <TableRow 
+                      key={item._id}
+                      className={cn(
+                        isExpiringSoon(item.fecha_caducidad) && "bg-red-500/30"
+                      )}
+                    >
                       <TableCell className="font-medium">{getProductoNombre(item.producto_id)}</TableCell>
                       <TableCell>{getSucursalNombre(item.sucursal_id)}</TableCell>
                       <TableCell>{item.cantidad}</TableCell>
