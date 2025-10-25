@@ -32,6 +32,11 @@ const items = [
     title: "Carts",
     url: "/carts",
     icon: Search,
+  },
+  {
+    title: "Cistributor",
+    url: "/distributor",
+    icon: Search,
   }
 ]
 
