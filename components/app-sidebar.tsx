@@ -14,6 +14,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { UserButton, useUser } from "@clerk/nextjs";
 
 // Menu items.
 const items = [
@@ -57,35 +58,49 @@ const items = [
 export function AppSidebar() {
   const pathname = usePathname()
 
+  const { user } = useUser();
+  
   return (
     <Sidebar className="sidebar-animate-in">
-      <SidebarContent className="sidebar-content">
-        <SidebarGroup>
-          <SidebarGroupLabel className="sidebar-group-label">Application</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => {
-                const isActive = pathname === item.url
-                
-                return (
-                  <SidebarMenuItem key={item.title} className="sidebar-item">
-                    <SidebarMenuButton 
-                      asChild 
-                      isActive={isActive}
-                      className={isActive ? 'sidebar-item-active' : 'sidebar-button'}
-                    >
-                      <Link href={item.url}>
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+      {/* PASO 1: Haz que el contenido sea un flex container vertical que ocupe toda la altura */}
+      <SidebarContent className="flex flex-col h-full">
+        {/* PASO 2: Envuelve tu menú en un div que crezca para ocupar el espacio */}
+        <div className="flex-1">
+          <SidebarGroup>
+            <SidebarGroupLabel className="sidebar-group-label">Application</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {items.map((item) => {
+                  const isActive = pathname === item.url
+                  
+                  return (
+                    <SidebarMenuItem key={item.title} className="sidebar-item">
+                      <SidebarMenuButton 
+                        asChild 
+                        isActive={isActive}
+                        className={isActive ? 'sidebar-item-active' : 'sidebar-button'}
+                      >
+                        <Link href={item.url}>
+                          <item.icon />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </div>
+
+        <div className="p-4 border-t border-gray-700 flex items-center gap-x-4">
+          <UserButton afterSignOutUrl="/" />
+          <div className="flex-1 truncate">
+            <h2 className="font-semibold text-sm text-white truncate">{user?.fullName}</h2>
+            <p className="text-xs text-gray-400 truncate">{user?.primaryEmailAddress?.emailAddress}</p>
+          </div>
+        </div>
       </SidebarContent>
     </Sidebar>
-  )
+  )
 }

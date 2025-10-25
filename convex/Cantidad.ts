@@ -8,6 +8,7 @@ export const createCantidad = mutation({
     cantidad: v.number(),
     producto_id: v.id("Producto"),
     sucursal_id: v.id("Sucursal"),
+    lote: v.string(),
   },
   handler: async (ctx, args) => {
     const cantidadId = await ctx.db.insert("Cantidad", {
@@ -40,6 +41,7 @@ export const updateCantidad = mutation({
     cantidad: v.optional(v.number()),
     producto_id: v.optional(v.id("Producto")),
     sucursal_id: v.optional(v.id("Sucursal")),
+    lote: v.string(),
   },
   handler: async (ctx, args) => {
     const { id, ...rest } = args;
