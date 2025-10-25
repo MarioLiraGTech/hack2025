@@ -8,6 +8,12 @@
  * @module
  */
 
+import type * as Cantidad from "../Cantidad.js";
+import type * as Carrito from "../Carrito.js";
+import type * as Distribuidor from "../Distribuidor.js";
+import type * as Producto from "../Producto.js";
+import type * as Sucursal from "../Sucursal.js";
+import type * as Vuelo from "../Vuelo.js";
 import type * as http from "../http.js";
 import type * as users from "../users.js";
 
@@ -26,6 +32,12 @@ import type {
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  Cantidad: typeof Cantidad;
+  Carrito: typeof Carrito;
+  Distribuidor: typeof Distribuidor;
+  Producto: typeof Producto;
+  Sucursal: typeof Sucursal;
+  Vuelo: typeof Vuelo;
   http: typeof http;
   users: typeof users;
 }>;
