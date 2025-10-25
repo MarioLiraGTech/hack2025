@@ -8,23 +8,23 @@ export const createCantidad = mutation({
     cantidad: v.number(),
     producto_id: v.id("Producto"),
     sucursal_id: v.id("Sucursal"),
-    fecha_registro: v.number(),
   },
   handler: async (ctx, args) => {
-    const cantidadId = await ctx.db.insert("Cantidad", args);
+    const cantidadId = await ctx.db.insert("Cantidad", {
+      ...args,
+      fecha_registro: Date.now(),
+    });
     return cantidadId;
   },
 });
 
 // --- Leer Cantidades ---
-// Obtener todas las cantidades
 export const getCantidades = query({
   handler: async (ctx) => {
     return await ctx.db.query("Cantidad").collect();
   },
 });
 
-// Obtener una cantidad por su ID
 export const getCantidadById = query({
   args: { cantidadId: v.id("Cantidad") },
   handler: async (ctx, args) => {
@@ -40,7 +40,6 @@ export const updateCantidad = mutation({
     cantidad: v.optional(v.number()),
     producto_id: v.optional(v.id("Producto")),
     sucursal_id: v.optional(v.id("Sucursal")),
-    fecha_registro: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const { id, ...rest } = args;
