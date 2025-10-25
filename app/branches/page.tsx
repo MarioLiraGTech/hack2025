@@ -55,13 +55,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-
-// --- Definición de Tipos ---
-
-// Tipo para el documento 'Sucursal' que viene de Convex. Incluye _id, _creationTime, etc.
 type SucursalType = Doc<"Sucursal">;
 
-// Tipo para el estado del formulario. Solo incluye los campos que el usuario llena.
 type SucursalFormState = {
   nombre: string;
   direccion: string;
@@ -72,7 +67,6 @@ type SucursalFormState = {
   correo?: string;
 };
 
-// --- Estado Inicial del Formulario ---
 const initialState: SucursalFormState = {
   nombre: "",
   direccion: "",
@@ -84,22 +78,17 @@ const initialState: SucursalFormState = {
 };
 
 
-// --- Componente Principal de la Página ---
 export default function SucursalesPage() {
-  // --- Estados del Componente ---
   const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedSucursal, setSelectedSucursal] = useState<SucursalType | null>(null);
   const [formData, setFormData] = useState<SucursalFormState>(initialState);
 
-  // --- Hooks de Convex ---
   const sucursales = useQuery(api.Sucursal.getSucursales);
   const createSucursal = useMutation(api.Sucursal.createSucursal);
   const updateSucursal = useMutation(api.Sucursal.updateSucursal);
   const deleteSucursal = useMutation(api.Sucursal.deleteSucursal);
-
-  // --- Manejadores de Eventos ---
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -163,87 +152,92 @@ export default function SucursalesPage() {
     setSelectedSucursal(null);
   };
 
-  // --- Renderizado Condicional de Carga ---
   if (sucursales === undefined) {
-    return <div className="p-4">Cargando sucursales...</div>;
+    return <div className="p-4 sm:p-6">Cargando sucursales...</div>;
   }
 
-  // --- JSX del Componente ---
   return (
-    <>
+    // {/* CAMBIO RESPONSIVO: Añadido padding al contenedor principal */}
+    <div className="p-4 sm:p-6">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        {/* CAMBIO RESPONSIVO: 'flex-col' en móvil, 'md:flex-row' en escritorio */}
+        <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <CardTitle>Administración de Sucursales</CardTitle>
             <CardDescription>
               Crea, edita y elimina las sucursales de tu organización.
             </CardDescription>
           </div>
-          <Button onClick={() => setCreateDialogOpen(true)}>
+          {/* CAMBIO RESPONSIVO: Botón a ancho completo en móvil ('w-full'), auto en escritorio ('md:w-auto') */}
+          <Button onClick={() => setCreateDialogOpen(true)} className="w-full md:w-auto">
             <PlusCircle className="mr-2 h-4 w-4" />
             Crear Sucursal
           </Button>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nombre</TableHead>
-                <TableHead>Dirección</TableHead>
-                <TableHead className="hidden md:table-cell">País</TableHead>
-                <TableHead className="hidden md:table-cell">Teléfono</TableHead>
-                <TableHead>Fecha Registro</TableHead>
-                <TableHead>
-                  <span className="sr-only">Acciones</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sucursales.length === 0 ? (
+          {/* CAMBIO RESPONSIVO: Contenedor para permitir scroll horizontal de la tabla en móviles */}
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center">
-                    Aún no hay sucursales. ¡Crea la primera!
-                  </TableCell>
+                  <TableHead>Nombre</TableHead>
+                  <TableHead>Dirección</TableHead>
+                  <TableHead className="hidden md:table-cell">País</TableHead>
+                  <TableHead className="hidden md:table-cell">Teléfono</TableHead>
+                  <TableHead>Fecha Registro</TableHead>
+                  <TableHead>
+                    <span className="sr-only">Acciones</span>
+                  </TableHead>
                 </TableRow>
-              ) : (
-                sucursales.map((sucursal) => (
-                  <TableRow key={sucursal._id}>
-                    <TableCell className="font-medium">{sucursal.nombre}</TableCell>
-                    <TableCell>{sucursal.direccion}</TableCell>
-                    <TableCell className="hidden md:table-cell">{sucursal.pais}</TableCell>
-                    <TableCell className="hidden md:table-cell">{sucursal.telefono ?? "N/A"}</TableCell>
-                    <TableCell>
-                      {new Date(sucursal.fecha_registro).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button aria-haspopup="true" size="icon" variant="ghost">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => handleEdit(sucursal)}>
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => confirmDelete(sucursal)}>
-                            Eliminar
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+              </TableHeader>
+              <TableBody>
+                {sucursales.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="h-24 text-center">
+                      Aún no hay sucursales. ¡Crea la primera!
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  sucursales.map((sucursal) => (
+                    <TableRow key={sucursal._id}>
+                      <TableCell className="font-medium">{sucursal.nombre}</TableCell>
+                      <TableCell>{sucursal.direccion}</TableCell>
+                      <TableCell className="hidden md:table-cell">{sucursal.pais}</TableCell>
+                      <TableCell className="hidden md:table-cell">{sucursal.telefono ?? "N/A"}</TableCell>
+                      <TableCell>
+                        {new Date(sucursal.fecha_registro).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Toggle menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => handleEdit(sucursal)}>
+                              Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => confirmDelete(sucursal)}>
+                              Eliminar
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
       {/* --- Dialogo para CREAR Sucursal --- */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setCreateDialogOpen}>
+        {/* CAMBIO RESPONSIVO: El 'sm:max-w-[425px]' ya es responsivo, se mantiene */}
         <DialogContent className="sm:max-w-[425px]">
           <form onSubmit={handleCreate}>
             <DialogHeader>
@@ -254,21 +248,23 @@ export default function SucursalesPage() {
             </DialogHeader>
             <div className="grid gap-4 py-4">
               {Object.keys(initialState).map((key) => (
-                <div className="grid grid-cols-4 items-center gap-4" key={key}>
-                  <Label htmlFor={key} className="text-right capitalize">
+                // CAMBIO RESPONSIVO: De 'grid-cols-4' a 'flex-col' para apilar label e input
+                <div className="flex flex-col gap-2" key={key}>
+                  <Label htmlFor={key} className="text-left capitalize">
                     {key.replace("_", " ")}
                   </Label>
                   <Input
                     id={key}
                     value={formData[key as keyof SucursalFormState]}
                     onChange={handleInputChange}
-                    className="col-span-3"
+                    // CAMBIO RESPONSIVO: Removido 'col-span-3'
                     required={!["telefono", "correo"].includes(key)}
                   />
                 </div>
               ))}
             </div>
-            <DialogFooter>
+            {/* CAMBIO RESPONSIVO: Botones apilados en móvil ('flex-col-reverse'), en fila en 'sm' */}
+            <DialogFooter className="flex-col-reverse sm:flex-row">
               <DialogClose asChild>
                 <Button type="button" variant="secondary">Cancelar</Button>
               </DialogClose>
@@ -290,21 +286,23 @@ export default function SucursalesPage() {
             </DialogHeader>
             <div className="grid gap-4 py-4">
                {Object.keys(initialState).map((key) => (
-                <div className="grid grid-cols-4 items-center gap-4" key={key}>
-                  <Label htmlFor={key} className="text-right capitalize">
+                // CAMBIO RESPONSIVO: De 'grid-cols-4' a 'flex-col'
+                <div className="flex flex-col gap-2" key={key}>
+                  <Label htmlFor={key} className="text-left capitalize">
                     {key.replace("_", " ")}
                   </Label>
                   <Input
                     id={key}
                     value={formData[key as keyof SucursalFormState]}
                     onChange={handleInputChange}
-                    className="col-span-3"
+                    // CAMBIO RESPONSIVO: Removido 'col-span-3'
                     required={!["telefono", "correo"].includes(key)}
                   />
                 </div>
               ))}
             </div>
-            <DialogFooter>
+            {/* CAMBIO RESPONSIVO: Botones apilados en móvil, en fila en 'sm' */}
+            <DialogFooter className="flex-col-reverse sm:flex-row">
               <DialogClose asChild>
                  <Button type="button" variant="secondary">Cancelar</Button>
               </DialogClose>
@@ -325,7 +323,8 @@ export default function SucursalesPage() {
               <span className="font-semibold"> {selectedSucursal?.nombre}</span> de la base de datos.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          {/* CAMBIO RESPONSIVO: Botones apilados en móvil, en fila en 'sm' */}
+          <AlertDialogFooter className="flex-col-reverse sm:flex-row">
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete}>
               Sí, eliminar
@@ -333,6 +332,6 @@ export default function SucursalesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </div>
   );
 }

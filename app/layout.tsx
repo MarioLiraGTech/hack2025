@@ -57,7 +57,7 @@ export default function RootLayout({
              */}
            <SidebarProvider>
             <AppSidebar />
-            <main>
+            <main className='flex-1'>
               <SidebarTrigger />
               {children}
               <Toaster position="top-center" richColors />
@@ -65,7 +65,7 @@ export default function RootLayout({
           </SidebarProvider>
         </body>
       </html>
-              </ConvexClientProvider>
+      </ConvexClientProvider>
     </ClerkProvider>
   )
 }
