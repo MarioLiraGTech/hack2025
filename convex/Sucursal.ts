@@ -3,6 +3,7 @@ import { mutation, query } from "./_generated/server";
 
 // --- Crear Sucursal ---
 export const createSucursal = mutation({
+  // Se elimina `fecha_registro` de los args. El cliente ya no necesita enviarla.
   args: {
     nombre: v.string(),
     direccion: v.string(),
@@ -11,23 +12,25 @@ export const createSucursal = mutation({
     codigo_postal: v.string(),
     telefono: v.optional(v.string()),
     correo: v.optional(v.string()),
-    fecha_registro: v.number(),
   },
   handler: async (ctx, args) => {
-    const sucursalId = await ctx.db.insert("Sucursal", args);
+    // Se añade la fecha de registro aquí, en el backend, usando Date.now()
+    const sucursalId = await ctx.db.insert("Sucursal", {
+      ...args, // <--- Se toman todos los argumentos del cliente
+      fecha_registro: Date.now(), // <--- CAMBIO CLAVE: Se añade la fecha en el servidor
+    });
     return sucursalId;
   },
 });
 
 // --- Leer Sucursales ---
-// Obtener todas las sucursales
+// (Sin cambios, ya estaba correcto)
 export const getSucursales = query({
   handler: async (ctx) => {
     return await ctx.db.query("Sucursal").collect();
   },
 });
 
-// Obtener una sucursal por su ID
 export const getSucursalById = query({
   args: { sucursalId: v.id("Sucursal") },
   handler: async (ctx, args) => {
@@ -35,8 +38,11 @@ export const getSucursalById = query({
   },
 });
 
+
 // --- Actualizar Sucursal ---
 export const updateSucursal = mutation({
+  // <--- CAMBIO CLAVE: Se elimina `fecha_registro` de aquí.
+  // La fecha de creación NUNCA debería poder actualizarse.
   args: {
     id: v.id("Sucursal"),
     nombre: v.optional(v.string()),
@@ -46,7 +52,6 @@ export const updateSucursal = mutation({
     codigo_postal: v.optional(v.string()),
     telefono: v.optional(v.string()),
     correo: v.optional(v.string()),
-    fecha_registro: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const { id, ...rest } = args;
@@ -56,6 +61,7 @@ export const updateSucursal = mutation({
 });
 
 // --- Eliminar Sucursal ---
+// (Sin cambios, ya estaba correcto)
 export const deleteSucursal = mutation({
   args: { id: v.id("Sucursal") },
   handler: async (ctx, args) => {
