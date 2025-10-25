@@ -15,29 +15,24 @@ import {
 const items = [
   {
     title: "Home",
-    url: "#",
+    url: "/",
     icon: Home,
   },
   {
-    title: "Inbox",
-    url: "#",
+    title: "Branches",
+    url: "/branches",
     icon: Inbox,
   },
   {
-    title: "Calendar",
-    url: "#",
+    title: "Products",
+    url: "/products",
     icon: Calendar,
   },
   {
-    title: "Search",
-    url: "#",
+    title: "Carts",
+    url: "/carts",
     icon: Search,
-  },
-  {
-    title: "Settings",
-    url: "#",
-    icon: Settings,
-  },
+  }
 ]
 
 export function AppSidebar() {
