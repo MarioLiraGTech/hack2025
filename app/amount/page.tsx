@@ -24,6 +24,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { Combobox } from "@/components/ui/combobox";
+import { chartContainerStyle } from "@/styles/gridStyle";
 
 // --- Tipos Específicos para Cantidad ---
 type CantidadType = Doc<"Cantidad">;
@@ -188,8 +189,9 @@ export default function CantidadesPage() {
   };
 
   return (
-    <div className="p-4 sm:p-6">
-      <Card>
+    <div className="general-styles">
+      <main>
+      <Card style={chartContainerStyle}>
         <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <CardTitle>Administración de Inventario</CardTitle>
@@ -332,6 +334,7 @@ export default function CantidadesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </main>
     </div>
   );
 }

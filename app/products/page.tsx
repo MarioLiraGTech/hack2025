@@ -60,6 +60,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { chartContainerStyle } from "@/styles/gridStyle";
 
 type ProductoType = Doc<"Producto">;
 
@@ -196,8 +197,9 @@ export default function ProductosPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6">
-      <Card>
+    <div className="general-styles">
+      <main>
+      <Card style={chartContainerStyle}>
         <CardHeader className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
           <div>
             <CardTitle>Administración de Productos</CardTitle>
@@ -434,6 +436,7 @@ export default function ProductosPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </main>
     </div>
   );
 }

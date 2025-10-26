@@ -63,6 +63,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { chartContainerStyle } from "@/styles/gridStyle";
 
 
 // --- Tipos Específicos para Carrito ---
@@ -195,8 +196,9 @@ export default function CarritosPage() {
 
   // --- JSX del Componente ---
   return (
-    <div className="p-4 sm:p-6">
-      <Card>
+    <div className="general-styles">
+      <main>
+      <Card style={chartContainerStyle}>
         <CardHeader className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
           <div>
             <CardTitle>Administración de Carritos</CardTitle>
@@ -401,6 +403,7 @@ export default function CarritosPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </main>
     </div>
   );
 }

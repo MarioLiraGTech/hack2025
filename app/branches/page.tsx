@@ -52,6 +52,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { chartContainerStyle } from "@/styles/gridStyle";
 
 type SucursalType = Doc<"Sucursal">;
 
@@ -189,9 +190,10 @@ export default function SucursalesPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6">
-      <Card>
-        <CardHeader className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+    <div className="general-styles">
+      <main>
+      <Card style={chartContainerStyle}>
+        <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <CardTitle>Administración de Sucursales</CardTitle>
             <CardDescription>
@@ -386,6 +388,7 @@ export default function SucursalesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </main>
     </div>
   );
 }

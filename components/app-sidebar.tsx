@@ -24,6 +24,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+
 import { UserButton, useUser } from "@clerk/nextjs";
 
 // Menu items.
@@ -75,15 +76,21 @@ export function AppSidebar() {
       <SidebarContent className="sidebar-content flex flex-col h-full">
         <div className="flex-1">
           <SidebarGroup>
-            <SidebarGroupLabel className="sidebar-group-label">
-              <Image
-                src="/images/LogotipoBlanco.png" // Ruta dentro de la carpeta public
-                alt="Logo"
-                width={200} // Ancho
-                height={200} // Alto
-              />
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
+              <SidebarGroupLabel className="sidebar-group-label">
+                <div className="w-full flex justify-center items-center">
+                  <div className="h-26 w-auto flex items-center m-10">
+                    <Image
+                      src="/images/LogotipoBlanco.png"
+                      alt="Logotipo Blanco"
+                      width={160}
+                      height={68}
+                      className="object-contain"
+                      priority
+                    />
+                  </div>
+                </div>
+              </SidebarGroupLabel>
+            <SidebarGroupContent className="mt-2">
               <SidebarMenu>
                 {items.map((item) => {
                   const isActive = pathname === item.url;
@@ -110,13 +117,13 @@ export function AppSidebar() {
           </SidebarGroup>
         </div>
 
-        <div className="p-4 border-t border-gray-700 flex items-center gap-x-4">
+        <div className="p-4 border-t flex items-center gap-x-4">
           <UserButton afterSignOutUrl="/" />
           <div className="flex-1 truncate">
             <h2 className="font-semibold text-sm text-white truncate">
               {user?.fullName}
             </h2>
-            <p className="text-xs text-gray-400 truncate">
+            <p className="text-xs truncate">
               {user?.primaryEmailAddress?.emailAddress}
             </p>
           </div>

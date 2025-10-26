@@ -23,6 +23,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { chartContainerStyle } from "@/styles/gridStyle";
 
 // --- Tipos Específicos ---
 type VueloType = Doc<"Vuelo">;
@@ -163,8 +164,9 @@ export default function VuelosPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6">
-      <Card>
+    <div className="general-styles">
+      <main>
+      <Card style={chartContainerStyle}>
         <CardHeader className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
           <div>
             <CardTitle>Administración de Traslados</CardTitle>
@@ -298,6 +300,7 @@ export default function VuelosPage() {
           </form>
         </DialogContent>
       </Dialog>
+      </main>
     </div>
   );
 }

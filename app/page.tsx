@@ -5,6 +5,9 @@ import React, { useEffect, useState } from 'react';
 import {  Chart as ChartJS, CategoryScale,LinearScale,BarElement,  ArcElement,PointElement,LineElement,Title,Tooltip,Legend,ChartData,} from 'chart.js';
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
 
+import WelcomeContainer from '@/components/welcomeContainer';
+import { dashboardGridStyle, chartContainerStyle } from '@/styles/gridStyle';
+
 // 1. Registrar los componentes de Chart.js que usaremos
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -13,8 +16,6 @@ interface FlightData {
   Product_Name: string;
   Quantity_Consumed: number;
   Flight_Type: 'short-haul' | 'medium-haul' | 'long-haul';
-  // Puedes añadir más campos si los necesitas, pero estos son los mínimos
-  // para la solicitud.
 }
 
 // Opciones para los gráficos
@@ -38,6 +39,9 @@ const getCSSVariable = (variable: string): string => {
  * Componente principal del Dashboard
  */
 export default function DashboardPage() {
+  
+  
+    
   // 3. Estados para los datos y visualizaciones
   const [data, setData] = useState<FlightData[]>([]);
   const [top5ReturnedPercentageChart, setTop5ReturnedPercentageChart] = useState<ChartData<'line'> | null>(null);
@@ -77,19 +81,19 @@ export default function DashboardPage() {
         
         // Top 5 productos con mayor porcentaje de regresados
         const topReturnedPercentage: [string, number][] = json.topReturnedPercentage ?? [];
-        const chart4Color = getCSSVariable('--chart-4');
+        const chart2Color = getCSSVariable('--chart-2');
         setTop5ReturnedPercentageChart({
           labels: topReturnedPercentage.map(([name]) => name),
           datasets: [
             {
               label: '% de Productos Regresados',
               data: topReturnedPercentage.map(([, percentage]) => percentage),
-              backgroundColor: chart4Color,
-              borderColor: chart4Color,
+              backgroundColor: chart2Color,
+              borderColor: chart2Color,
               borderWidth: 2,
               pointRadius: 6,
               pointHoverRadius: 8,
-              pointBackgroundColor: chart4Color,
+              pointBackgroundColor: chart2Color,
               tension: 0.3,
             },
           ],
@@ -114,7 +118,7 @@ export default function DashboardPage() {
 
         // Flight types
         const flightTypes: [string, number][] = json.flightTypes ?? [];
-        const chart2Color = getCSSVariable('--chart-2');
+        const chart4Color = getCSSVariable('--chart-4');
         const chart3Color = getCSSVariable('--chart-3');
         const chart5Color = getCSSVariable('--chart-5');
         setFlightTypeData({
@@ -124,7 +128,7 @@ export default function DashboardPage() {
               label: 'Consumo por Tipo de Vuelo',
               data: flightTypes.map(([, qty]) => qty),
               backgroundColor: [
-                chart2Color,
+                chart4Color,
                 chart3Color,
                 chart5Color,
               ],
@@ -151,22 +155,22 @@ export default function DashboardPage() {
 
   // 5. Renderizado del componente
   return (
-    <div style={{ padding: '2rem', fontFamily: 'Arial, sans-serif' }}>
+    <div className="general-styles">
 
       {/* --- Mensajes de Estado --- */}
       {isLoading && <p>Cargando y procesando archivo local...</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {error && <p style={{ color: 'var(--destructive)' }}>{error}</p>}
 
       {/* --- Contenedor del Dashboard (solo se muestra si hay datos) --- */}
       {top5ReturnedPercentageChart !== null && !isLoading && (
         <main>
+          <WelcomeContainer />
+
           {/* Sección de KPI: Top 5 Productos con Mayor % de Regresados */}
-          <h2>Top 5 Productos con Mayor Porcentaje de Regresados</h2>
+          <h2 id='Graficas'>Top 5 Productos con Mayor Porcentaje de Regresados</h2>
           <div style={chartContainerStyle}>
             <Line options={chartOptions} data={top5ReturnedPercentageChart} />
           </div>
-
-          <hr style={{ margin: '2rem 0' }} />
 
           {/* Sección de Gráficos */}
           <h2>Visualizaciones</h2>
@@ -177,7 +181,7 @@ export default function DashboardPage() {
                 <h3>Top 10 Productos Más Consumidos</h3>
                 <Bar options={chartOptions} data={topProductsData} />
               </div>
-            )}
+            )} 
 
             {/* Gráfico 2 */}
             {flightTypeData && (
@@ -194,20 +198,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-// 6. Estilos básicos para el layout
-const dashboardGridStyle: React.CSSProperties = {
-  display: 'grid',
-  // Mostrar exactamente 2 columnas en una fila; cada columna toma la mitad del contenedor
-  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-  gap: '2rem',
-  marginTop: '1rem',
-};
-
-const chartContainerStyle: React.CSSProperties = {
-  border: '1px solid #ddd',
-  borderRadius: '8px',
-  padding: '1rem',
-  backgroundColor: '#fff',
-  boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-};
