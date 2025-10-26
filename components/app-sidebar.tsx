@@ -1,8 +1,18 @@
-"use client"
+"use client";
 
-import { ShoppingCart, Home, Plane,Truck, ShoppingBasket, Layers, MapPinHouse } from "lucide-react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import {
+  ShoppingCart,
+  Home,
+  Plane,
+  Truck,
+  ShoppingBasket,
+  Layers,
+  MapPinHouse,
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+import Image from "next/image";
 
 import {
   Sidebar,
@@ -13,7 +23,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 import { UserButton, useUser } from "@clerk/nextjs";
 
 // Menu items.
@@ -53,32 +63,39 @@ const items = [
     url: "/flight",
     icon: Plane,
   },
-]
+];
 
 export function AppSidebar() {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   const { user } = useUser();
-  
+
   return (
-    <Sidebar className="sidebar-animate-in">
-      <SidebarContent className="flex flex-col h-full">
+    <Sidebar className="sidebar-animate-in border-transparent">
+      <SidebarContent className="sidebar-content flex flex-col h-full">
         <div className="flex-1">
           <SidebarGroup>
             <SidebarGroupLabel className="sidebar-group-label">
-              Inset logo
+              <Image
+                src="/images/LogotipoBlanco.png" // Ruta dentro de la carpeta public
+                alt="Logo"
+                width={200} // Ancho
+                height={200} // Alto
+              />
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {items.map((item) => {
-                  const isActive = pathname === item.url
-                  
+                  const isActive = pathname === item.url;
+
                   return (
                     <SidebarMenuItem key={item.title} className="sidebar-item">
-                      <SidebarMenuButton 
-                        asChild 
+                      <SidebarMenuButton
+                        asChild
                         isActive={isActive}
-                        className={isActive ? 'sidebar-item-active' : 'sidebar-button'}
+                        className={
+                          isActive ? "sidebar-item-active" : "sidebar-button"
+                        }
                       >
                         <Link href={item.url}>
                           <item.icon />
@@ -86,7 +103,7 @@ export function AppSidebar() {
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-                  )
+                  );
                 })}
               </SidebarMenu>
             </SidebarGroupContent>
@@ -96,11 +113,15 @@ export function AppSidebar() {
         <div className="p-4 border-t border-gray-700 flex items-center gap-x-4">
           <UserButton afterSignOutUrl="/" />
           <div className="flex-1 truncate">
-            <h2 className="font-semibold text-sm text-white truncate">{user?.fullName}</h2>
-            <p className="text-xs text-gray-400 truncate">{user?.primaryEmailAddress?.emailAddress}</p>
+            <h2 className="font-semibold text-sm text-white truncate">
+              {user?.fullName}
+            </h2>
+            <p className="text-xs text-gray-400 truncate">
+              {user?.primaryEmailAddress?.emailAddress}
+            </p>
           </div>
         </div>
       </SidebarContent>
     </Sidebar>
-  )
+  );
 }
