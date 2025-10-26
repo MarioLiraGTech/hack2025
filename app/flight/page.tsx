@@ -5,9 +5,10 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Doc, Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
-import { MoreHorizontal, PlusCircle, Trash2, ArrowRight, BrainCircuit, Loader2, CalendarIcon, ArrowLeft, Search } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Trash2, BrainCircuit, Loader2, ArrowLeft, Search, FileDown, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { downloadFlightTicket, previewFlightTicket } from "@/lib/generateFlightTicket";
 
 // --- Importaciones de Componentes Shadcn/ui ---
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -151,6 +152,92 @@ export default function VuelosPage() {
     setCompleteDialogOpen(true);
   };
 
+  const handleDownloadTicket = async (vuelo: VueloType) => {
+    const carrito = carritos?.find(c => c._id === vuelo.carrito_id);
+    const origen = sucursales?.find(s => s._id === vuelo.sucursal_origen);
+    const destino = sucursales?.find(s => s._id === vuelo.sucursal_destino);
+
+    if (!carrito || !origen || !destino) {
+      toast.error("No se pudo cargar la información completa del vuelo");
+      return;
+    }
+
+    const productosData = vuelo.cantidad.map(item => {
+      const itemInventario = inventario?.find(inv => inv._id === item.producto);
+      const producto = itemInventario ? productos?.find(p => p._id === itemInventario.producto_id) : null;
+      return {
+        nombre: producto?.nombre || "Desconocido",
+        cantidad: item.cantidad,
+        sobrante: 'sobrante' in item ? (item as CantidadSobrante).sobrante : undefined,
+      };
+    });
+
+    await downloadFlightTicket({
+      _id: vuelo._id,
+      fecha_registro: vuelo.fecha_registro,
+      completado: vuelo.completado,
+      carrito: {
+        nombre: carrito.nombre,
+        tipo: carrito.tipo,
+      },
+      sucursal_origen: {
+        nombre: origen.nombre,
+        pais: origen.pais,
+        ciudad: origen.estado,
+      },
+      sucursal_destino: {
+        nombre: destino.nombre,
+        pais: destino.pais,
+        ciudad: destino.estado,
+      },
+      productos: productosData,
+    });
+
+    toast.success("Ticket descargado exitosamente");
+  };
+
+  const handlePreviewTicket = async (vuelo: VueloType) => {
+    const carrito = carritos?.find(c => c._id === vuelo.carrito_id);
+    const origen = sucursales?.find(s => s._id === vuelo.sucursal_origen);
+    const destino = sucursales?.find(s => s._id === vuelo.sucursal_destino);
+
+    if (!carrito || !origen || !destino) {
+      toast.error("No se pudo cargar la información completa del vuelo");
+      return;
+    }
+
+    const productosData = vuelo.cantidad.map(item => {
+      const itemInventario = inventario?.find(inv => inv._id === item.producto);
+      const producto = itemInventario ? productos?.find(p => p._id === itemInventario.producto_id) : null;
+      return {
+        nombre: producto?.nombre || "Desconocido",
+        cantidad: item.cantidad,
+        sobrante: 'sobrante' in item ? (item as CantidadSobrante).sobrante : undefined,
+      };
+    });
+
+    await previewFlightTicket({
+      _id: vuelo._id,
+      fecha_registro: vuelo.fecha_registro,
+      completado: vuelo.completado,
+      carrito: {
+        nombre: carrito.nombre,
+        tipo: carrito.tipo,
+      },
+      sucursal_origen: {
+        nombre: origen.nombre,
+        pais: origen.pais,
+        ciudad: origen.estado,
+      },
+      sucursal_destino: {
+        nombre: destino.nombre,
+        pais: destino.pais,
+        ciudad: destino.estado,
+      },
+      productos: productosData,
+    });
+  };
+
   const handleSobranteChange = (index: number, value: string) => {
     const newCantidad = [...completeForm.cantidad];
     const originalAmount = selectedVuelo?.cantidad[index]?.cantidad ?? 0;
@@ -207,7 +294,31 @@ export default function VuelosPage() {
                       <TableCell>{getNombre(vuelo.sucursal_origen, sucursales)}</TableCell>
                       <TableCell>{getNombre(vuelo.sucursal_destino, sucursales)}</TableCell>
                       <TableCell>{formatDate(vuelo.fecha_registro)}</TableCell>
-                      <TableCell>{!vuelo.completado && <DropdownMenu><DropdownMenuTrigger asChild><Button size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuLabel>Acciones</DropdownMenuLabel><DropdownMenuItem onClick={() => openCompleteDialog(vuelo)}>Completar Traslado</DropdownMenuItem></DropdownMenuContent></DropdownMenu>}</TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="icon" variant="ghost">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                            {!vuelo.completado && (
+                              <DropdownMenuItem onClick={() => openCompleteDialog(vuelo)}>
+                                Completar Traslado
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem onClick={() => handlePreviewTicket(vuelo)}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              Ver Ticket
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDownloadTicket(vuelo)}>
+                              <FileDown className="mr-2 h-4 w-4" />
+                              Descargar Ticket
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
