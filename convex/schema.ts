@@ -53,7 +53,6 @@ export default defineSchema({
         cantidad: v.number(),
         producto_id: v.id("Producto"),
         sucursal_id: v.id("Sucursal"),
-        lote: v.string(),
         fecha_registro: v.number(),
     })
     .index("by_producto_sucursal_caducidad", [

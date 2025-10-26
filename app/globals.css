@@ -196,7 +196,7 @@
 
 .sidebar-content::-webkit-scrollbar-thumb:hover {
   background-color: oklch(var(--ring));
-}
+} 
 
 /* Grupo de items */
 .sidebar-group-label {

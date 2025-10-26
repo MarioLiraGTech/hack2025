@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Doc, Id } from "@/convex/_generated/dataModel";
@@ -23,12 +23,12 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-// CAMBIO: Importa el nuevo componente Combobox
 import { Combobox } from "@/components/ui/combobox";
 
 // --- Tipos Específicos para Cantidad ---
 type CantidadType = Doc<"Cantidad">;
 
+// ✅ Este tipo ya no incluye 'lote'
 type CantidadFormState = {
   cantidad: string;
   fecha_caducidad?: Date;
@@ -37,6 +37,7 @@ type CantidadFormState = {
 };
 
 // --- Estado Inicial del Formulario ---
+// ✅ Este estado inicial ya no incluye 'lote'
 const initialState: CantidadFormState = {
   cantidad: "",
   fecha_caducidad: undefined,
@@ -61,13 +62,14 @@ export default function CantidadesPage() {
   const productos = useQuery(api.Producto.getProductos);
   const sucursales = useQuery(api.Sucursal.getSucursales);
 
-  // ✅ SOLUCIÓN AL ERROR: Mueve las funciones helper aquí, antes de ser usadas.
-  const getProductoNombre = (id: Id<"Producto">): string => {
+  const getProductoNombre = useCallback((id: Id<"Producto">): string => {
     return productos?.find(p => p._id === id)?.nombre || id;
-  };
-  const getSucursalNombre = (id: Id<"Sucursal">): string => {
+  }, [productos]);
+
+  // Envuelve la función en useCallback y le dices que solo depende de 'sucursales'
+  const getSucursalNombre = useCallback((id: Id<"Sucursal">): string => {
     return sucursales?.find(s => s._id === id)?.nombre || id;
-  };
+  }, [sucursales]);
 
   const filteredCantidades = useMemo(() => {
     if (!cantidades || !productos || !sucursales) return [];
@@ -79,9 +81,8 @@ export default function CantidadesPage() {
       const sucursalNombre = getSucursalNombre(item.sucursal_id).toLowerCase();
       return productoNombre.includes(lowercasedFilter) || sucursalNombre.includes(lowercasedFilter);
     });
-  }, [searchTerm, cantidades, productos, sucursales]);
+  }, [searchTerm, cantidades, productos, sucursales, getProductoNombre, getSucursalNombre]);
 
-  // ✅ CAMBIO: Prepara los datos para los Combobox
   const productoOptions = useMemo(() => productos?.map(p => ({ value: p._id, label: p.nombre })) || [], [productos]);
   const sucursalOptions = useMemo(() => sucursales?.map(s => ({ value: s._id, label: s.nombre })) || [], [sucursales]);
 
@@ -98,15 +99,17 @@ export default function CantidadesPage() {
     setFormData((prev) => ({ ...prev, fecha_caducidad: date }));
   };
   
+  // ✅ Esta función ya no hace referencia a 'lote'
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.fecha_caducidad || !formData.producto_id || !formData.sucursal_id) {
       toast.error("Por favor, completa todos los campos.");
       return;
     }
+  
     toast.promise(createCantidad({
       ...formData,
-      cantidad: Number(formData.cantidad),
+      cantidad: Number(formData.cantidad), // Se convierte a número aquí
       fecha_caducidad: formData.fecha_caducidad.getTime(),
       producto_id: formData.producto_id as Id<"Producto">,
       sucursal_id: formData.sucursal_id as Id<"Sucursal">,
@@ -115,10 +118,12 @@ export default function CantidadesPage() {
       success: "¡Cantidad registrada con éxito!",
       error: (err) => `Error: ${err.data}`,
     });
+
     setFormData(initialState);
     setCreateDialogOpen(false);
   };
 
+  // ✅ Esta función ya no hace referencia a 'lote'
   const handleEdit = (cantidad: CantidadType) => {
     setSelectedCantidad(cantidad);
     setFormData({
@@ -174,7 +179,6 @@ export default function CantidadesPage() {
   
   const formatDate = (timestamp: number) => new Date(timestamp).toLocaleDateString("es-MX");
 
-  // Función para verificar si la fecha de caducidad está próxima (menos de 10 días)
   const isExpiringSoon = (timestamp: number) => {
     const expiryDate = new Date(timestamp);
     const today = new Date();
@@ -262,7 +266,6 @@ export default function CantidadesPage() {
         </CardContent>
       </Card>
 
-      {/* --- Dialogos con Combobox --- */}
       <Dialog open={isCreateDialogOpen || isEditDialogOpen} onOpenChange={isCreateDialogOpen ? setCreateDialogOpen : setEditDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <form onSubmit={isCreateDialogOpen ? handleCreate : handleUpdate}>
@@ -271,7 +274,6 @@ export default function CantidadesPage() {
               <DialogDescription>Completa los datos del producto en la sucursal.</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              {/* ✅ CAMBIO: Combobox para Producto */}
               <div className="flex flex-col gap-2">
                 <Label>Producto</Label>
                 <Combobox
@@ -282,7 +284,6 @@ export default function CantidadesPage() {
                   searchPlaceholder="Buscar producto..."
                 />
               </div>
-              {/* ✅ CAMBIO: Combobox para Sucursal */}
               <div className="flex flex-col gap-2">
                 <Label>Sucursal</Label>
                 <Combobox
@@ -293,6 +294,7 @@ export default function CantidadesPage() {
                   searchPlaceholder="Buscar sucursal..."
                 />
               </div>
+              {/* ✅ El campo de input para 'lote' ya no está aquí */}
               <div className="flex flex-col gap-2">
                 <Label htmlFor="cantidad">Cantidad</Label>
                 <Input id="cantidad" type="number" value={formData.cantidad} onChange={handleInputChange} required placeholder="0" />
