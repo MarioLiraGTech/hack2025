@@ -153,6 +153,36 @@ export default function DashboardPage() {
     load();
   }, []);
 
+  // useEffect para manejar el scroll cuando se navega con hash
+  useEffect(() => {
+    // Esperar a que el DOM esté completamente cargado y los gráficos renderizados
+    const handleHashScroll = () => {
+      const hash = window.location.hash;
+      if (hash) {
+        const elementId = hash.substring(1); // Remover el #
+        const element = document.getElementById(elementId);
+        if (element) {
+          // Usar setTimeout para asegurar que el elemento esté completamente renderizado
+          setTimeout(() => {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 300);
+        }
+      }
+    };
+
+    // Ejecutar cuando los datos estén cargados
+    if (!isLoading && top5ReturnedPercentageChart !== null) {
+      handleHashScroll();
+    }
+
+    // También escuchar cambios en el hash
+    window.addEventListener('hashchange', handleHashScroll);
+    
+    return () => {
+      window.removeEventListener('hashchange', handleHashScroll);
+    };
+  }, [isLoading, top5ReturnedPercentageChart]);
+
   // 5. Renderizado del componente
   return (
     <div className="general-styles">
